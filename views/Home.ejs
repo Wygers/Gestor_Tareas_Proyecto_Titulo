@@ -2,10 +2,448 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Profesional</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Navbar personalizado */
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-custom .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .navbar-custom .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 8px 16px;
+        }
+        
+        .navbar-custom .nav-link:hover,
+        .navbar-custom .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Hero section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        /* Tarjetas de estadísticas */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: none;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        /* Tablas */
+        .table-custom {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table-custom thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .table-custom th {
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+        
+        .table-custom td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        
+        /* Badges de estado */
+        .badge-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-pendiente { background: #ffc107; color: #000; }
+        .badge-progreso { background: #17a2b8; color: #fff; }
+        .badge-completada { background: #28a745; color: #fff; }
+        .badge-vencida { background: #dc3545; color: #fff; }
+        
+        /* Lista de actividad */
+        .activity-list {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .activity-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        /* Footer */
+        .footer-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin-top: auto;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-custom a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-custom a:hover {
+            color: white;
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 25px;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Gestor de Tareas Profesional</h1>
-    <p>Proyecto iniciado correctamente</p>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand text-white" href="/">
+            <i class="bi bi-kanban-fill me-2"></i>Gestor de Tareas
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">
+                        <i class="bi bi-house-door me-1"></i>Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tareas">
+                        <i class="bi bi-check2-square me-1"></i>Tareas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/usuarios">
+                        <i class="bi bi-people me-1"></i>Usuarios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reportes">
+                        <i class="bi bi-graph-up me-1"></i>Reportes
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i>Mi Cuenta
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/perfil"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="/configuracion"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+<main class="container my-4">
+    <!-- Hero / Bienvenida -->
+    <div class="hero-section">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="bi bi-speedometer2 me-2"></i>Panel de Control
+                </h1>
+                <p class="lead mb-0">Gestión, seguimiento y control de tareas operativas en tiempo real.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <div class="bg-white bg-opacity-25 rounded-3 p-3 d-inline-block">
+                    <i class="bi bi-calendar-week me-2"></i>
+                    <span id="fechaActual"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarjetas KPI -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon text-primary">
+                    <i class="bi bi-list-check"></i>
+                </div>
+                <div class="stat-title">Total Tareas</div>
+                <div class="stat-value" id="totalTareas">0</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon text-warning">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-title">Pendientes</div>
+                <div class="stat-value" id="pendientes">0</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon text-success">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div class="stat-title">Finalizadas</div>
+                <div class="stat-value" id="finalizadas">0</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-title">Vencidas</div>
+                <div class="stat-value" id="vencidas">0</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabla de tareas recientes + Actividad -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="table-custom">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-table me-2 text-primary"></i>Últimas Tareas
+                    </h5>
+                    <a href="/tareas" class="btn btn-sm btn-outline-primary">
+                        Ver todas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tarea</th>
+                                <th>Estado</th>
+                                <th>Fecha Límite</th>
+                                <th><i class="bi bi-three-dots"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaTareas">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Cargando tareas...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="activity-list">
+                <div class="p-3 border-bottom bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-rss-fill me-2 text-primary"></i>Actividad Reciente
+                    </h5>
+                </div>
+                <div id="listaActividad">
+                    <div class="activity-item text-center text-muted">
+                        <i class="bi bi-hourglass-split fs-1 d-block mb-2"></i>
+                        Cargando actividad...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer-custom">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-kanban-fill me-2"></i>Gestor de Tareas
+                </h5>
+                <p class="opacity-75">Plataforma profesional para la gestión de equipos, seguimiento de proyectos y control de productividad en tiempo real.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                    <a href="#"><i class="bi bi-github"></i></a>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <h6 class="fw-bold mb-3">Enlaces Rápidos</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/"><i class="bi bi-chevron-right me-1"></i>Inicio</a></li>
+                    <li class="mb-2"><a href="/tareas"><i class="bi bi-chevron-right me-1"></i>Tareas</a></li>
+                    <li class="mb-2"><a href="/usuarios"><i class="bi bi-chevron-right me-1"></i>Usuarios</a></li>
+                    <li class="mb-2"><a href="/reportes"><i class="bi bi-chevron-right me-1"></i>Reportes</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-md-3">
+                <h6 class="fw-bold mb-3">Soporte</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#"><i class="bi bi-envelope me-2"></i>soporte@gestortareas.com</a></li>
+                    <li class="mb-2"><a href="#"><i class="bi bi-headset me-2"></i>Centro de Ayuda</a></li>
+                    <li class="mb-2"><a href="#"><i class="bi bi-shield-check me-2"></i>Estado del Sistema</a></li>
+                    <li class="mb-2"><a href="#"><i class="bi bi-file-text me-2"></i>Documentación</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-md-3">
+                <h6 class="fw-bold mb-3">Horario</h6>
+                <p class="mb-1"><i class="bi bi-clock me-2"></i>Lun - Vie: 8:00 - 19:00</p>
+                <p class="mb-1"><i class="bi bi-calendar-week me-2"></i>Sáb: 9:00 - 14:00</p>
+                <p class="mb-0"><i class="bi bi-headset me-2"></i>Soporte 24/7 Emergencias</p>
+            </div>
+        </div>
+        
+        <hr class="my-4 opacity-25">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div class="small opacity-75">
+                &copy; 2026 Gestor de Tareas. Todos los derechos reservados.
+            </div>
+            <div class="small">
+                <a href="/privacidad" class="me-3">Política de Privacidad</a>
+                <a href="/terminos">Términos y Condiciones</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    
+    function actualizarFecha() {
+        const fechaElemento = document.getElementById('fechaActual');
+        if (fechaElemento) {
+            const ahora = new Date();
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            fechaElemento.textContent = ahora.toLocaleDateString('es-ES', opciones);
+        }
+    }
+    
+    actualizarFecha();
+    setInterval(actualizarFecha, 60000);
+</script>
 </body>
 </html>
