@@ -1,34 +1,34 @@
 const express = require('express');
 const path = require('path');
-
 const app = express();
 const PORT = 3000;
+const db = require('./db/conexion');
 
-// Motor de vistas
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Archivos estáticos (IMPORTANTE para CSS)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Evitar error usuario undefined
 app.use((req, res, next) => {
     res.locals.usuario = null;
     next();
 });
+app.get('/', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT NOW() AS fecha');
 
-// Ruta principal
-app.get('/', (req, res) => {
-    res.render('home', {
-        title: 'Gestor de Tareas Profesional'
-    });
+        res.render('home', {
+            title: 'Gestor de Tareas Profesional',
+            fechaServidor: rows[0].fecha
+        });
+    } catch (error) {
+        console.error('Error consultando MySQL:', error.message);
+        res.status(500).send('Error de conexión a base de datos');
+    }
 });
 
-// Servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
