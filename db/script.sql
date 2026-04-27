@@ -14,18 +14,21 @@ CREATE TABLE organizaciones (
     activo BOOLEAN DEFAULT TRUE,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
 CREATE TABLE prioridades_tarea (
     id_prioridad INT AUTO_INCREMENT PRIMARY KEY,
     nombre_prioridad VARCHAR(50) NOT NULL,
     nivel INT NOT NULL,
     color VARCHAR(30)
 ) ENGINE=InnoDB;
+
 CREATE TABLE estados_tarea (
     id_estado INT AUTO_INCREMENT PRIMARY KEY,
     nombre_estado VARCHAR(50) NOT NULL,
     orden_flujo INT,
     color VARCHAR(30)
 ) ENGINE=InnoDB;
+
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -37,6 +40,7 @@ CREATE TABLE usuarios (
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_organizacion) REFERENCES organizaciones(id_organizacion)
 ) ENGINE=InnoDB;
+
 CREATE TABLE proyectos (
     id_proyecto INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -46,6 +50,7 @@ CREATE TABLE proyectos (
     fecha_fin DATE,
     FOREIGN KEY (id_organizacion) REFERENCES organizaciones(id_organizacion)
 ) ENGINE=InnoDB;
+
 CREATE TABLE categorias_tarea (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -53,6 +58,7 @@ CREATE TABLE categorias_tarea (
     descripcion TEXT,
     FOREIGN KEY (id_organizacion) REFERENCES organizaciones(id_organizacion)
 ) ENGINE=InnoDB;
+
 CREATE TABLE tareas (
     id_tarea INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -80,6 +86,7 @@ CREATE TABLE tareas (
     FOREIGN KEY (id_estado) REFERENCES estados_tarea(id_estado),
     FOREIGN KEY (id_usuario_creador) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 CREATE TABLE tarea_responsables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -88,6 +95,7 @@ CREATE TABLE tarea_responsables (
     FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 CREATE TABLE seguimiento_tareas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -98,6 +106,7 @@ CREATE TABLE seguimiento_tareas (
     FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 CREATE TABLE evidencias_tarea (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -109,6 +118,7 @@ CREATE TABLE evidencias_tarea (
     FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 CREATE TABLE comentarios_tarea (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -118,6 +128,7 @@ CREATE TABLE comentarios_tarea (
     FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 CREATE TABLE alertas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT,
@@ -126,6 +137,7 @@ CREATE TABLE alertas (
     fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
 CREATE TABLE auditoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT,
@@ -136,6 +148,7 @@ CREATE TABLE auditoria (
     fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
 INSERT INTO prioridades_tarea (nombre_prioridad, nivel, color) VALUES
 ('Baja',1,'secondary'),
 ('Media',2,'primary'),
