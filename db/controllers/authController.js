@@ -1,228 +1,190 @@
-const db = require('../conexion');
-const bcrypt = require('bcryptjs');
+const db=require('../conexion');
+const bcrypt=require('bcryptjs');
 
-const authController = {};
+const authController={};
 
-/* =========================
-   MOSTRAR LOGIN
-========================= */
+authController.login=async(req,res)=>{
 
-authController.mostrarLogin = (req, res) => {
+const{correo,password}=req.body;
 
-    res.render('Login', {
-        title: 'Iniciar Sesión',
-        error: null
-    });
+try{
+
+if(!correo||!password){
+
+return res.status(400).json({
+ok:false,
+mensaje:'Debe completar todos los campos.'
+});
+
+}
+
+const[usuarios]=await db.query(`
+SELECT usuarios.*,roles.nombre_rol
+FROM usuarios
+INNER JOIN roles
+ON usuarios.id_rol=roles.id_rol
+WHERE usuarios.correo=?
+AND usuarios.activo=1
+`,[correo]);
+
+if(usuarios.length===0){
+
+return res.status(401).json({
+ok:false,
+mensaje:'Correo o contraseña incorrectos.'
+});
+
+}
+
+const usuario=usuarios[0];
+
+const passwordValida=await bcrypt.compare(
+password,
+usuario.password
+);
+
+if(!passwordValida){
+
+return res.status(401).json({
+ok:false,
+mensaje:'Correo o contraseña incorrectos.'
+});
+
+}
+
+await db.query(`
+UPDATE usuarios
+SET ultimo_login=NOW()
+WHERE id_usuario=?
+`,[usuario.id_usuario]);
+
+req.session.usuario={
+id_usuario:usuario.id_usuario,
+nombre:usuario.nombre,
+apellido:usuario.apellido,
+correo:usuario.correo,
+id_rol:usuario.id_rol,
+rol:usuario.nombre_rol
+};
+
+res.status(200).json({
+ok:true,
+mensaje:'Login exitoso.',
+usuario:req.session.usuario
+});
+
+}catch(error){
+
+console.log(error);
+
+res.status(500).json({
+ok:false,
+mensaje:'Error interno del servidor.'
+});
+
+}
 
 };
 
-/* =========================
-   MOSTRAR REGISTRO
-========================= */
+authController.registrarUsuario=async(req,res)=>{
 
-authController.mostrarRegistro = (req, res) => {
+const{
+nombre,
+apellido,
+correo,
+password,
+telefono,
+id_rol
+}=req.body;
 
-    res.render('Registro', {
-        title: 'Registro de Usuario',
-        error: null
-    });
+try{
 
-};
+if(
+!nombre||
+!apellido||
+!correo||
+!password||
+!id_rol
+){
 
-/* =========================
-   LOGIN
-========================= */
+return res.status(400).json({
+ok:false,
+mensaje:'Todos los campos son obligatorios.'
+});
 
-authController.login = async (req, res) => {
+}
 
-    const { correo, contraseña } = req.body;
+const[usuarioExistente]=await db.query(`
+SELECT id_usuario
+FROM usuarios
+WHERE correo=?
+`,[correo]);
 
-    try {
+if(usuarioExistente.length>0){
 
-        if (!correo || !contraseña) {
+return res.status(409).json({
+ok:false,
+mensaje:'El correo ya está registrado.'
+});
 
-            return res.render('Login', {
-                title: 'Iniciar Sesión',
-                error: 'Debe completar todos los campos.'
-            });
+}
 
-        }
+const salt=await bcrypt.genSalt(10);
 
-        const [usuarios] = await db.query(
-            `
-            SELECT *
-            FROM usuarios
-            WHERE correo = ?
-            AND activo = 1
-            `,
-            [correo]
-        );
+const passwordHash=await bcrypt.hash(
+password,
+salt
+);
 
-        if (usuarios.length === 0) {
+await db.query(`
+INSERT INTO usuarios(
+id_rol,
+nombre,
+apellido,
+correo,
+password,
+telefono,
+activo
+)
+VALUES(?,?,?,?,?,?,1)
+`,[
+id_rol,
+nombre,
+apellido,
+correo,
+passwordHash,
+telefono||null
+]);
 
-            return res.render('Login', {
-                title: 'Iniciar Sesión',
-                error: 'Correo o contraseña incorrectos.'
-            });
+res.status(201).json({
+ok:true,
+mensaje:'Usuario registrado correctamente.'
+});
 
-        }
+}catch(error){
 
-        const usuario = usuarios[0];
+console.log(error);
 
-        const passwordValida = await bcrypt.compare(
-            contraseña,
-            usuario.contraseña
-        );
+res.status(500).json({
+ok:false,
+mensaje:'Error interno del servidor.'
+});
 
-        if (!passwordValida) {
-
-            return res.render('Login', {
-                title: 'Iniciar Sesión',
-                error: 'Correo o contraseña incorrectos.'
-            });
-
-        }
-
-        req.session.usuario = {
-
-            id_usuario: usuario.id_usuario,
-            id_organizacion: usuario.id_organizacion,
-            nombre_completo: usuario.nombre_completo,
-            correo: usuario.correo,
-            tipo_usuario: usuario.tipo_usuario
-
-        };
-
-        res.redirect('/');
-
-    } catch (error) {
-
-        console.error('Error en login:', error);
-
-        res.render('Login', {
-            title: 'Iniciar Sesión',
-            error: 'Ocurrió un error al iniciar sesión.'
-        });
-
-    }
+}
 
 };
 
-/* =========================
-   REGISTRO USUARIO
-========================= */
+authController.logout=(req,res)=>{
 
-authController.registrarUsuario = async (req, res) => {
+req.session.destroy(()=>{
 
-    const {
-        nombre_completo,
-        correo,
-        contraseña,
-        tipo_usuario
-    } = req.body;
+res.status(200).json({
+ok:true,
+mensaje:'Sesión cerrada correctamente.'
+});
 
-    try {
-
-        if (
-            !nombre_completo ||
-            !correo ||
-            !contraseña ||
-            !tipo_usuario
-        ) {
-
-            return res.render('Registro', {
-                title: 'Registro de Usuario',
-                error: 'Todos los campos son obligatorios.'
-            });
-
-        }
-
-        /* =========================
-           VALIDAR CORREO
-        ========================= */
-
-        const [usuarioExistente] = await db.query(
-            `
-            SELECT id_usuario
-            FROM usuarios
-            WHERE correo = ?
-            `,
-            [correo]
-        );
-
-        if (usuarioExistente.length > 0) {
-
-            return res.render('Registro', {
-                title: 'Registro de Usuario',
-                error: 'El correo ya está registrado.'
-            });
-
-        }
-
-        /* =========================
-           ENCRIPTAR CONTRASEÑA
-        ========================= */
-
-        const salt = await bcrypt.genSalt(10);
-
-        const passwordHash = await bcrypt.hash(
-            contraseña,
-            salt
-        );
-
-        /* =========================
-           INSERTAR USUARIO
-        ========================= */
-
-        await db.query(
-            `
-            INSERT INTO usuarios
-            (
-                id_organizacion,
-                nombre_completo,
-                correo,
-                contraseña,
-                tipo_usuario,
-                activo
-            )
-            VALUES (?, ?, ?, ?, ?, 1)
-            `,
-            [
-                1,
-                nombre_completo,
-                correo,
-                passwordHash,
-                tipo_usuario
-            ]
-        );
-
-        res.redirect('/auth/login');
-
-    } catch (error) {
-
-        console.error('Error al registrar usuario:', error);
-
-        res.render('Registro', {
-            title: 'Registro de Usuario',
-            error: 'Error interno del servidor.'
-        });
-
-    }
+});
 
 };
 
-/* =========================
-   LOGOUT
-========================= */
-
-authController.logout = (req, res) => {
-
-    req.session.destroy(() => {
-
-        res.redirect('/auth/login');
-
-    });
-
-};
-
-module.exports = authController;
+module.exports=authController;
