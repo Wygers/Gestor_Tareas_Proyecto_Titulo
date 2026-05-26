@@ -2,47 +2,199 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro</title>
+    <title>Registro de Usuario - Gestor de Tareas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; }
-        .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
-        .reg-container { max-width: 800px; margin-top: 50px; }
-        .card-visual { border-radius: 20px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .register-card { max-width: 550px; margin-top: 50px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .role-badge { font-size: 0.75rem; margin-left: 8px; }
+        .password-strength { height: 5px; transition: all 0.3s; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container"><a class="navbar-brand" href="/">Gestor de Tareas</a></div>
-    </nav>
-    <main class="container reg-container">
-        <div class="card card-visual p-4">
-            <div class="row">
-                <div class="col-md-6 border-end">
-                    <h4 class="mb-3">Crear Cuenta</h4>
-                    <form action="/auth/registro" method="POST">
-                        <input type="hidden" name="id_cliente" value="1">
-                        <div class="mb-2"><label>Nombre Completo</label><input type="text" name="nombre_completo" class="form-control" required></div>
-                        <div class="mb-2"><label>Correo</label><input type="email" name="correo" class="form-control" required></div>
-                        <div class="mb-2"><label>Contraseña</label><input type="password" name="contrasena" class="form-control" required></div>
-                        <div class="mb-3"><label>Rol</label><select name="tipo_usuario" class="form-select">
-                            <option value="visualizador">Visualizador</option><option value="actualizador">Actualizador</option>
-                            <option value="admin_cliente">Admin Cliente</option><option value="super_admin">Super Admin</option>
-                        </select></div>
-                        <button class="btn btn-success w-100">Registrar</button>
-                    </form>
-                </div>
-                <div class="col-md-6 d-flex flex-column justify-content-center p-4">
-                    <div class="card bg-light p-3 border-0">
-                        <h5><i class="bi bi-info-circle text-primary"></i> Información</h5>
-                        <p class="text-muted">El registro permite centralizar la gestión de tareas operativas, asegurando trazabilidad y control de avance en tiempo real.</p>
+    <div class="container">
+        <div class="card register-card mx-auto p-4">
+            <div class="card-body">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill text-primary"></i> 
+                    Registro de Usuario
+                </h2>
+                <% if (error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="bi bi-exclamation-triangle"></i> <%= error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+                <% } %>
+                <form action="/auth/registro" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-building"></i> Organización / Empresa
+                        </label>
+                        <select name="id_organizacion" class="form-select" required>
+                            <option value="">Seleccione una organización...</option>
+                            <option value="1" selected>Empresa Demo S.A. (RUT: 76.123.456-7)</option>
+                        </select>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            La organización define el contexto de sus tareas
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-person-badge"></i> Rol en el Sistema
+                        </label>
+                        <select name="rol" class="form-select" required>
+                            <option value="">Seleccione un rol...</option>
+                            <option value="administrador">🔴 Administrador - Acceso total al sistema</option>
+                            <option value="supervisor">🟡 Supervisor - Asigna y supervisa tareas</option>
+                            <option value="tecnico">🟢 Técnico - Ejecuta tareas asignadas</option>
+                            <option value="visualizador">🔵 Visualizador - Solo lectura de información</option>
+                        </select>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            El rol define los permisos dentro del sistema
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-person-vcard"></i> Nombre Completo
+                        </label>
+                        <input type="text" name="nombre_completo" class="form-control" 
+                               placeholder="Ej: Juan Pérez González" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-telephone"></i> Teléfono (Opcional)
+                        </label>
+                        <input type="tel" name="telefono" class="form-control" 
+                               placeholder="+56 9 1234 5678">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-envelope"></i> Correo Electrónico
+                        </label>
+                        <input type="email" name="correo" class="form-control" 
+                               placeholder="usuario@empresa.com" required>
+                        <small class="text-muted">Este correo se usará para iniciar sesión</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-lock"></i> Contraseña
+                        </label>
+                        <input type="password" name="contrasena" id="password" 
+                               class="form-control" required minlength="6">
+                        <div class="password-strength bg-secondary mt-2 rounded" id="strengthBar"></div>
+                        <small class="text-muted">Mínimo 6 caracteres</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-shield-lock"></i> Confirmar Contraseña
+                        </label>
+                        <input type="password" name="confirmar_contrasena" id="confirmPassword" 
+                               class="form-control" required>
+                        <small id="passwordMatch" class="text-muted"></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2" id="btnRegister">
+                        <i class="bi bi-check-circle"></i> Registrar Usuario
+                    </button>
+                </form>
+                <div class="mt-4">
+                    <hr>
+                    <h6 class="text-center">
+                        <i class="bi bi-shield-shaded"></i> Permisos según rol:
+                    </h6>
+                    <div class="row small mt-2 text-center">
+                        <div class="col-3">
+                            <span class="badge bg-danger">Administrador</span><br>
+                            <small>Todo</small>
+                        </div>
+                        <div class="col-3">
+                            <span class="badge bg-warning text-dark">Supervisor</span><br>
+                            <small>Asigna tareas</small>
+                        </div>
+                        <div class="col-3">
+                            <span class="badge bg-success">Técnico</span><br>
+                            <small>Ejecuta tareas</small>
+                        </div>
+                        <div class="col-3">
+                            <span class="badge bg-secondary">Visualizador</span><br>
+                            <small>Solo lectura</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="/auth/login" class="text-decoration-none">
+                        <i class="bi bi-arrow-left"></i> Volver al inicio de sesión
+                    </a>
                 </div>
             </div>
         </div>
-    </main>
-    <footer class="mt-auto bg-dark text-white text-center py-3">© 2026 Gestor de Tareas</footer>
+    </div>
+    <script>
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const passwordMatch = document.getElementById('passwordMatch');
+        const strengthBar = document.getElementById('strengthBar');
+        
+        function checkPasswordStrength() {
+            const val = password.value;
+            let strength = 0;
+            
+            if (val.length >= 6) strength++;
+            if (val.length >= 10) strength++;
+            if (/[A-Z]/.test(val)) strength++;
+            if (/[0-9]/.test(val)) strength++;
+            if (/[^A-Za-z0-9]/.test(val)) strength++;
+            
+            const colors = ['#dc3545', '#ffc107', '#28a745'];
+            const widths = ['20%', '50%', '100%'];
+            
+            if (strength <= 2) {
+                strengthBar.style.backgroundColor = '#dc3545';
+                strengthBar.style.width = '33%';
+            } else if (strength <= 4) {
+                strengthBar.style.backgroundColor = '#ffc107';
+                strengthBar.style.width = '66%';
+            } else {
+                strengthBar.style.backgroundColor = '#28a745';
+                strengthBar.style.width = '100%';
+            }
+        }
+        function validatePasswordMatch() {
+            if (password.value !== confirmPassword.value) {
+                passwordMatch.innerHTML = '❌ Las contraseñas no coinciden';
+                passwordMatch.style.color = '#dc3545';
+                return false;
+            } else if (confirmPassword.value !== '') {
+                passwordMatch.innerHTML = '✅ Las contraseñas coinciden';
+                passwordMatch.style.color = '#28a745';
+                return true;
+            }
+            return false;
+        }
+        password.addEventListener('input', () => {
+            checkPasswordStrength();
+            validatePasswordMatch();
+        });
+        confirmPassword.addEventListener('input', validatePasswordMatch);
+        document.getElementById('btnRegister')?.addEventListener('click', function(e) {
+            if (password.value !== confirmPassword.value) {
+                e.preventDefault();
+                alert('❌ Las contraseñas no coinciden');
+                return false;
+            }
+            
+            if (password.value.length < 6) {
+                e.preventDefault();
+                alert('❌ La contraseña debe tener mínimo 6 caracteres');
+                return false;
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

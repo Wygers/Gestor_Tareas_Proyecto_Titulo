@@ -1,21 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const authController = require('../db/controllers/authController');
 
-router.get('/login', (req, res) => {
-    res.render('login', { error: null });
-});
-router.get('/registro', (req, res) => {
-    res.render('registro', { error: null });
-});
-router.post('/login', (req, res) => {
-    res.send("Procesando login...");
-});
-router.post('/registro', (req, res) => {
-    res.send("Procesando registro...");
-});
-router.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
+router.get('/login', authController.showLogin);
+router.post('/login', authController.login);
+router.get('/registro', authController.showRegistro);
+router.post('/registro', authController.registrarUsuario);
+router.get('/logout', authController.logout);
 
 module.exports = router;
