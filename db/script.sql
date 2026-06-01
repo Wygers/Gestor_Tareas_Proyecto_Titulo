@@ -37,18 +37,36 @@ CREATE TABLE usuario (
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion)
 );
 
-CREATE TABLE proyecto (
-    id_proyecto INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE tarea (
+    id_tarea INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_tarea VARCHAR(20) NOT NULL UNIQUE,
     id_organizacion INT NOT NULL,
-    nombre_proyecto VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    fecha_inicio DATE,
-    fecha_termino DATE,
-    activo BOOLEAN DEFAULT TRUE,
-    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion)
+    id_categoria INT NOT NULL,
+    id_prioridad INT NOT NULL,
+    id_estado INT NOT NULL,
+    id_usuario_creador INT NOT NULL,
+    id_usuario_asignado INT NOT NULL,
+    titulo VARCHAR(200) NOT NULL,
+    descripcion TEXT NOT NULL,
+    ubicacion_referencial VARCHAR(255) NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_limite DATE NOT NULL,
+    fecha_cierre DATE NULL, 
+    porcentaje_avance DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    observaciones TEXT NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id_usuario_modificador INT NOT NULL,
+    
+    FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
+    FOREIGN KEY (id_categoria) REFERENCES categoria_tarea(id_categoria),
+    FOREIGN KEY (id_prioridad) REFERENCES prioridad_tarea(id_prioridad),
+    FOREIGN KEY (id_estado) REFERENCES estado_tarea(id_estado),
+    FOREIGN KEY (id_usuario_creador) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_usuario_asignado) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_usuario_modificador) REFERENCES usuario(id_usuario)
 );
-
 CREATE TABLE categoria_tarea (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -75,38 +93,6 @@ CREATE TABLE estado_tarea (
     es_final BOOLEAN DEFAULT FALSE,
     color_css VARCHAR(20),
     activo BOOLEAN DEFAULT TRUE
-);
-
-CREATE TABLE tarea (
-    id_tarea INT AUTO_INCREMENT PRIMARY KEY,
-    codigo_tarea VARCHAR(20) NOT NULL UNIQUE,
-    id_organizacion INT NOT NULL,
-    id_proyecto INT NULL,
-    id_categoria INT NULL,
-    id_prioridad INT NOT NULL,
-    id_estado INT NOT NULL,
-    id_usuario_creador INT NOT NULL,
-    id_usuario_asignado INT NULL,
-    titulo VARCHAR(200) NOT NULL,
-    descripcion TEXT,
-    ubicacion_referencial VARCHAR(255),
-    fecha_inicio DATE,
-    fecha_limite DATE,
-    fecha_cierre DATE,
-    porcentaje_avance DECIMAL(5,2) DEFAULT 0,
-    observaciones TEXT,
-    activo BOOLEAN DEFAULT TRUE,
-    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    id_usuario_modificador INT NULL,
-    FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
-    FOREIGN KEY (id_proyecto) REFERENCES proyecto(id_proyecto),
-    FOREIGN KEY (id_categoria) REFERENCES categoria_tarea(id_categoria),
-    FOREIGN KEY (id_prioridad) REFERENCES prioridad_tarea(id_prioridad),
-    FOREIGN KEY (id_estado) REFERENCES estado_tarea(id_estado),
-    FOREIGN KEY (id_usuario_creador) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (id_usuario_asignado) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (id_usuario_modificador) REFERENCES usuario(id_usuario)
 );
 
 CREATE TABLE asignacion_tarea (

@@ -1,60 +1,28 @@
 const db = require('../conexion');
 const bcrypt = require('bcryptjs');
+
 const authController = {};
 
 authController.showLogin = (req, res) => {
-    if (req.session.usuario) {
-        return res.redirect('/home');
-    }
-    
+    if (req.session.usuario) return res.redirect('/home');
     
     const error = req.session.error;
     const success = req.session.success;
-    
-    
     delete req.session.error;
     delete req.session.success;
     
-    res.render('login', {
-        title: 'Iniciar Sesión',
-        error: error || null,
-        success: success || null
-    });
+    res.render('login', { title: 'Iniciar Sesión', error, success });
 };
-authController.showRegistro = async (req, res) => {
-    if (req.session.usuario) {
-        return res.redirect('/home');
-    }
+
+authController.showRegistro = (req, res) => {
+    if (req.session.usuario) return res.redirect('/home');
     
     const error = req.session.error;
-    const success = req.session.success;
-    
     delete req.session.error;
-    delete req.session.success;
     
-    try {
-        const [organizaciones] = await db.query(`
-            SELECT id_organizacion, nombre_organizacion, rut_organizacion 
-            FROM organizacion 
-            WHERE activo = 1
-        `);
-        
-        res.render('registro', {
-            title: 'Registro de Usuario',
-            organizaciones: organizaciones,
-            error: error || null,
-            success: success || null
-        });
-    } catch (error) {
-        console.error(error);
-        res.render('registro', {
-            title: 'Registro de Usuario',
-            organizaciones: [],
-            error: 'Error al cargar organizaciones',
-            success: null
-        });
-    }
+    res.render('registro', { title: 'Registro de Usuario', error });
 };
+
 authController.login = async (req, res) => {
     const { correo, contrasena } = req.body;
 
@@ -65,31 +33,22 @@ authController.login = async (req, res) => {
         }
 
         const [usuarios] = await db.query(`
-            SELECT 
-                u.id_usuario,
-                u.id_organizacion,
-                u.nombre_completo,
-                u.correo,
-                u.contrasena,
-                u.rol,
-                u.activo,
-                u.intentos_fallidos,
-                u.bloqueado_hasta,
-                o.nombre_organizacion
+            SELECT u.*, o.nombre_organizacion 
             FROM usuario u
             INNER JOIN organizacion o ON u.id_organizacion = o.id_organizacion
             WHERE u.correo = ? AND u.activo = 1
         `, [correo]);
 
         if (usuarios.length === 0) {
-            req.session.error = 'Correo o contraseña incorrectos.';
+            req.session.error = 'Credenciales inválidas.';
             return res.redirect('/auth/login');
         }
 
         const usuario = usuarios[0];
 
+        // Verificar bloqueo
         if (usuario.bloqueado_hasta && new Date(usuario.bloqueado_hasta) > new Date()) {
-            req.session.error = 'Usuario bloqueado temporalmente. Intente más tarde.';
+            req.session.error = 'Usuario bloqueado. Intente más tarde.';
             return res.redirect('/auth/login');
         }
 
@@ -97,28 +56,15 @@ authController.login = async (req, res) => {
 
         if (!passwordValida) {
             const nuevosIntentos = (usuario.intentos_fallidos || 0) + 1;
-            if (nuevosIntentos >= 5) {
-                await db.query(`
-                    UPDATE usuario 
-                    SET intentos_fallidos = ?, bloqueado_hasta = DATE_ADD(NOW(), INTERVAL 15 MINUTE)
-                    WHERE id_usuario = ?
-                `, [nuevosIntentos, usuario.id_usuario]);
-            } else {
-                await db.query(`
-                    UPDATE usuario 
-                    SET intentos_fallidos = ?
-                    WHERE id_usuario = ?
-                `, [nuevosIntentos, usuario.id_usuario]);
-            }
-            req.session.error = 'Correo o contraseña incorrectos.';
+            await db.query('UPDATE usuario SET intentos_fallidos = ? WHERE id_usuario = ?', 
+                [nuevosIntentos, usuario.id_usuario]);
+            
+            req.session.error = 'Credenciales inválidas.';
             return res.redirect('/auth/login');
         }
 
-        await db.query(`
-            UPDATE usuario 
-            SET intentos_fallidos = 0, bloqueado_hasta = NULL, ultimo_login = NOW()
-            WHERE id_usuario = ?
-        `, [usuario.id_usuario]);
+        // Login exitoso
+        await db.query('UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = ?', [usuario.id_usuario]);
 
         req.session.usuario = {
             id_usuario: usuario.id_usuario,
@@ -129,84 +75,61 @@ authController.login = async (req, res) => {
             nombre_organizacion: usuario.nombre_organizacion
         };
 
-        req.session.success = `Bienvenido ${usuario.nombre_completo}`;
         res.redirect('/home');
-
     } catch (error) {
-        console.log(error);
+        console.error(error);
         req.session.error = 'Error interno del servidor.';
         res.redirect('/auth/login');
     }
 };
+
 authController.registrarUsuario = async (req, res) => {
-    const {
-        nombre_completo,
-        correo,
-        contrasena,
-        telefono,
-        rol,
-        id_organizacion
-    } = req.body;
+    const { nombre_organizacion, rut_organizacion, nombre_completo, correo, contrasena, telefono } = req.body;
 
+    // Validación básica
+    if (!nombre_organizacion || !rut_organizacion || !nombre_completo || !correo || !contrasena) {
+        req.session.error = 'Todos los campos son obligatorios.';
+        return res.redirect('/auth/registro');
+    }
+
+    const connection = await db.getConnection(); 
     try {
-        if (!nombre_completo || !correo || !contrasena || !rol || !id_organizacion) {
-            req.session.error = 'Todos los campos obligatorios deben ser completados.';
-            return res.redirect('/auth/registro');
-        }
+        await connection.beginTransaction();
 
-        const rolesValidos = ['administrador', 'supervisor', 'tecnico', 'visualizador'];
-        if (!rolesValidos.includes(rol)) {
-            req.session.error = 'Rol no válido.';
-            return res.redirect('/auth/registro');
-        }
+        // 1. Crear Organización
+        const [orgResult] = await connection.query(
+            'INSERT INTO organizacion (nombre_organizacion, rut_organizacion, activo) VALUES (?, ?, 1)',
+            [nombre_organizacion, rut_organizacion]
+        );
+        const id_organizacion = orgResult.insertId;
 
-        const [organizacionExiste] = await db.query(`
-            SELECT id_organizacion FROM organizacion WHERE id_organizacion = ? AND activo = 1
-        `, [id_organizacion]);
-
-        if (organizacionExiste.length === 0) {
-            req.session.error = 'Organización no válida.';
-            return res.redirect('/auth/registro');
-        }
-
-        const [usuarioExistente] = await db.query(`
-            SELECT id_usuario FROM usuario WHERE correo = ?
-        `, [correo]);
-
-        if (usuarioExistente.length > 0) {
-            req.session.error = 'El correo ya está registrado.';
-            return res.redirect('/auth/registro');
-        }
-
+        // 2. Hash Password
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(contrasena, salt);
 
-        await db.query(`
-            INSERT INTO usuario (
-                id_organizacion,
-                nombre_completo,
-                correo,
-                contrasena,
-                rol,
-                telefono,
-                activo
-            ) VALUES (?, ?, ?, ?, ?, ?, 1)
-        `, [id_organizacion, nombre_completo, correo, passwordHash, rol, telefono || null]);
+        // 3. Crear Usuario Administrador vinculado
+        await connection.query(`
+            INSERT INTO usuario (id_organizacion, nombre_completo, correo, contrasena, rol, telefono, activo) 
+            VALUES (?, ?, ?, ?, 'administrador', ?, 1)`,
+            [id_organizacion, nombre_completo, correo, passwordHash, telefono || null]
+        );
 
-        req.session.success = 'Usuario registrado correctamente. Ya puedes iniciar sesión.';
+        await connection.commit();
+        req.session.success = 'Empresa y administrador registrados exitosamente.';
         res.redirect('/auth/login');
 
     } catch (error) {
-        console.log(error);
-        req.session.error = 'Error interno del servidor.';
+        await connection.rollback();
+        console.error(error);
+        req.session.error = 'Error al registrar. Asegúrese de que el correo no esté duplicado.';
         res.redirect('/auth/registro');
+    } finally {
+        connection.release();
     }
 };
 
 authController.logout = (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/auth/login');
-    });
+    req.session.destroy(() => res.redirect('/auth/login'));
 };
 
 module.exports = authController;
