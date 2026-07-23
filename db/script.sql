@@ -1,11 +1,9 @@
 SET FOREIGN_KEY_CHECKS = 0;
 DROP DATABASE IF EXISTS sistema_gestor_tareas;
 SET FOREIGN_KEY_CHECKS = 1;
-
 CREATE DATABASE sistema_gestor_tareas
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
-
 USE sistema_gestor_tareas;
 
 CREATE TABLE organizacion (
@@ -19,7 +17,6 @@ CREATE TABLE organizacion (
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
 CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     id_organizacion INT NOT NULL,
@@ -36,7 +33,6 @@ CREATE TABLE usuario (
     fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion)
 );
-
 CREATE TABLE tarea (
     id_tarea INT AUTO_INCREMENT PRIMARY KEY,
     codigo_tarea VARCHAR(20) NOT NULL UNIQUE,
@@ -76,7 +72,6 @@ CREATE TABLE categoria_tarea (
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
     UNIQUE KEY uk_org_categoria (id_organizacion, nombre_categoria)
 );
-
 CREATE TABLE prioridad_tarea (
     id_prioridad INT AUTO_INCREMENT PRIMARY KEY,
     nombre_prioridad VARCHAR(20) NOT NULL UNIQUE,
@@ -85,7 +80,6 @@ CREATE TABLE prioridad_tarea (
     descripcion TEXT,
     activo BOOLEAN DEFAULT TRUE
 );
-
 CREATE TABLE estado_tarea (
     id_estado INT AUTO_INCREMENT PRIMARY KEY,
     nombre_estado VARCHAR(30) NOT NULL UNIQUE,
@@ -94,7 +88,6 @@ CREATE TABLE estado_tarea (
     color_css VARCHAR(20),
     activo BOOLEAN DEFAULT TRUE
 );
-
 CREATE TABLE asignacion_tarea (
     id_asignacion INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -109,7 +102,6 @@ CREATE TABLE asignacion_tarea (
     FOREIGN KEY (id_supervisor) REFERENCES usuario(id_usuario),
     UNIQUE KEY uk_tarea_tecnico_activo (id_tarea, id_tecnico, activo)
 );
-
 CREATE TABLE evidencia_tarea (
     id_evidencia INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -123,22 +115,6 @@ CREATE TABLE evidencia_tarea (
     FOREIGN KEY (id_tarea) REFERENCES tarea(id_tarea),
     FOREIGN KEY (id_usuario_subida) REFERENCES usuario(id_usuario)
 );
-
-CREATE TABLE historial_tarea (
-    id_historial INT AUTO_INCREMENT PRIMARY KEY,
-    id_tarea INT NOT NULL,
-    id_usuario INT NOT NULL,
-    accion VARCHAR(50) NOT NULL,
-    campo_modificado VARCHAR(50),
-    valor_anterior TEXT,
-    valor_nuevo TEXT,
-    comentario TEXT,
-    fecha_cambio DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ip_origen VARCHAR(45),
-    FOREIGN KEY (id_tarea) REFERENCES tarea(id_tarea),
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-);
-
 CREATE TABLE comentario_tarea (
     id_comentario INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,
@@ -149,7 +125,6 @@ CREATE TABLE comentario_tarea (
     FOREIGN KEY (id_tarea) REFERENCES tarea(id_tarea),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
-
 CREATE TABLE logs_sistema (
     id_log BIGINT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NULL,
@@ -163,7 +138,6 @@ CREATE TABLE logs_sistema (
     fecha_hora DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
-
 INSERT INTO prioridad_tarea (nombre_prioridad, nivel_urgencia, color_css, descripcion) VALUES
 ('Baja', 1, '#28a745', 'Tareas que pueden esperar'),
 ('Media', 2, '#007bff', 'Seguimiento normal'),
