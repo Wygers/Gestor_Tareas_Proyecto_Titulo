@@ -2,11 +2,11 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP DATABASE IF EXISTS sistema_gestor_tareas;
 SET FOREIGN_KEY_CHECKS = 1;
 CREATE DATABASE sistema_gestor_tareas
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 USE sistema_gestor_tareas;
 
-CREATE TABLE organizacion (
+CREATE TABLE organizacion(
     id_organizacion INT AUTO_INCREMENT PRIMARY KEY,
     nombre_organizacion VARCHAR(100) NOT NULL,
     rut_organizacion VARCHAR(12) NOT NULL UNIQUE,
