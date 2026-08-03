@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const db = require('./db/conexion');
 const authRoutes = require('./routes/auth.routes');
 const tareasRoutes = require('./routes/tareas.routes');
+const usuariosRoutes = require('./routes/usuarios.routes'); // Ruta de usuarios agregada
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 });
 app.use('/auth', authRoutes);
 app.use('/tareas', tareasRoutes);
+app.use('/usuarios', usuariosRoutes); 
 app.get(['/', '/home'], (req, res) => {
     res.render('home', {
         title: 'Gestor de Tareas Profesional',

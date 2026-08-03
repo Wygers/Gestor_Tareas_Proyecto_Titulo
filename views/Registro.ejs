@@ -19,7 +19,7 @@
         }
         .register-container {
             width: 100%;
-            max-width: 750px;
+            max-width: 800px;
             margin: auto;
         }
         .register-card {
@@ -129,6 +129,27 @@
                             </div>
                             <div class="form-text"><small>Con puntos y guión</small></div>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="correo_contacto" class="form-label required-field">Correo de Contacto Empresa</label>
+                            <div class="input-group-with-icon">
+                                <input type="email" class="form-control" id="correo_contacto" name="correo_contacto" placeholder="contacto@empresa.cl" required>
+                                <i class="bi bi-envelope-at"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telefono_org" class="form-label required-field">Teléfono Empresa</label>
+                            <div class="input-group-with-icon">
+                                <input type="tel" class="form-control" id="telefono_org" name="telefono_org" placeholder="+56 2 2345 6789" required>
+                                <i class="bi bi-telephone"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="direccion" class="form-label required-field">Dirección Comercial</label>
+                            <div class="input-group-with-icon">
+                                <input type="text" class="form-control" id="direccion" name="direccion" placeholder="Ej: Av. Libertador 1234, Oficina 502, Santiago" required>
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-section">
@@ -160,7 +181,7 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="telefono" class="form-label">Teléfono de Contacto</label>
+                            <label for="telefono" class="form-label">Teléfono Personal (Opcional)</label>
                             <div class="input-group-with-icon">
                                 <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="+56 9 1234 5678">
                                 <i class="bi bi-telephone"></i>
@@ -182,6 +203,7 @@
                         </div>
                     </div>
                 </div>
+
                 <button type="submit" class="btn btn-register w-100 py-2">
                     <i class="bi bi-check-circle-fill me-2"></i>Completar Registro y Crear Empresa
                 </button>

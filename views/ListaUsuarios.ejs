@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title || 'Gestión de Usuarios' %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #172554;
+            --gradient: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+        }
+        body { background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh; }
+        .navbar-custom { background: var(--primary); }
+        .card-header-custom {
+            background: var(--gradient) !important;
+            color: #ffffff !important;
+            border-bottom: none;
+        }
+        .card-header-custom h3, 
+        .card-header-custom small {
+            color: #ffffff !important;
+        }
+        .table-hover tbody tr:hover {
+            background: rgba(30, 58, 138, 0.05);
+            transition: 0.2s;
+        }
+        .btn-primary-custom {
+            background-color: var(--primary);
+            border: none;
+            color: white;
+        }
+        .btn-primary-custom:hover { background-color: var(--primary-dark); color: white; }
+        .bg-primary-custom { background: var(--gradient) !important; }
+        main { flex: 1 0 auto; }
+        footer { flex-shrink: 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-kanban-fill me-2"></i> Gestor de Tareas</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Inicio</a>
+                <a class="nav-link" href="/tareas">Tareas</a>
+                <a class="nav-link active" href="/usuarios">Usuarios</a>
+                <a class="nav-link" href="/organizaciones">Organizaciones</a>
+                <% if(typeof usuario !== 'undefined' && usuario) { %>
+                    <a class="nav-link text-danger fw-medium" href="/auth/logout">Cerrar Sesión</a>
+                <% } else { %>
+                    <a class="nav-link" href="/auth/login">Login</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+    <main class="container-fluid mt-4 mb-5">
+        <div class="card shadow border-0">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center py-3">
+                <div>
+                    <h3 class="mb-0 text-white"><i class="fas fa-users-cog me-2"></i> Listado de Usuarios</h3>
+                    <small class="text-white-50">Administración de perfiles y accesos del sistema</small>
+                </div>
+            </div>
+            <div class="card-body">
+                <% if (typeof error_msg !== 'undefined' && error_msg) { %>
+                    <div class="alert alert-danger shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><%= error_msg %>
+                    </div>
+                <% } %>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light text-primary border-bottom">
+                            <tr>
+                                <th>ID Usuario</th>
+                                <th>ID Organización</th>
+                                <th>Nombre Completo</th>
+                                <th>Correo Registrado</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (typeof usuarios !== 'undefined' && usuarios.length > 0) { %>
+                                <% usuarios.forEach(u => { %>
+                                    <tr class="usuario-row">
+                                        <td class="fw-bold text-muted"><%= u.id_usuario %></td>
+                                        <td><span class="badge bg-secondary"><%= u.id_organizacion %></span></td>
+                                        <td class="fw-semibold text-dark"><%= u.nombre_completo %></td>
+                                        <td>
+                                            <i class="fas fa-envelope me-1 text-muted"></i> <%= u.correo %>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info text-dark text-uppercase"><%= u.rol %></span>
+                                        </td>
+                                        <td>
+                                            <% if (u.activo == 1 || u.activo === true) { %>
+                                                <span class="badge bg-success-subtle text-success border border-success px-3">Activo</span>
+                                            <% } else { %>
+                                                <span class="badge bg-danger-subtle text-danger border border-danger px-3">Inactivo</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group shadow-sm">
+                                                <button class="btn btn-sm btn-outline-warning" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#modalEditarUsuario"
+                                                        data-id="<%= u.id_usuario %>"
+                                                        data-org="<%= u.id_organizacion %>"
+                                                        data-nombre="<%= u.nombre_completo %>"
+                                                        data-correo="<%= u.correo %>"
+                                                        data-rol="<%= u.rol %>"
+                                                        title="Editar">
+                                                    <i class="fas fa-pencil-alt"></i>
+                                                </button>
+                                                <a href="/usuarios/eliminar/<%= u.id_usuario %>" 
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('¿Está seguro de eliminar este usuario?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No hay usuarios registrados en el sistema.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0">
+                <div class="modal-header card-header-custom">
+                    <h5 class="modal-title text-white"><i class="fas fa-user-edit me-2"></i> Editar Datos de Usuario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formEditarUsuario" method="POST">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nombre Completo</label>
+                                <input type="text" class="form-control shadow-sm" id="edit_nombre_completo" name="nombre_completo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Correo Registrado</label>
+                                <input type="email" class="form-control shadow-sm" id="edit_correo" name="correo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Rol</label>
+                                <select class="form-select shadow-sm" id="edit_rol" name="rol" required>
+                                    <option value="administrador">Administrador</option>
+                                    <option value="supervisor">Supervisor</option>
+                                    <option value="tecnico">Técnico</option>
+                                    <option value="visualizador">Visualizador</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">ID Organización</label>
+                                <input type="number" class="form-control shadow-sm" id="edit_id_organizacion" name="id_organizacion" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary-custom px-4 shadow-sm">Actualizar Registro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <footer class="text-center text-white py-4 bg-primary-custom">
+        <div class="container">
+            <p class="mb-1 fw-medium">&copy; 2026 Sistema de Gestión de Tareas Operativas</p>
+            <p class="mb-2">
+                <i class="bi bi-calendar-check me-1 text-info"></i> Fecha del sistema: <span id="fechaActual" class="fw-bold"></span>
+            </p>
+            <p class="small text-white-50 mb-0">Control • Seguridad • Trazabilidad</p>
+        </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function actualizarFecha() {
+            const fecha = new Date();
+            const opciones = {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            };
+            const fechaFormateada = fecha.toLocaleString('es-CL', opciones);
+            const elementoFecha = document.getElementById("fechaActual");
+            if (elementoFecha) {
+                elementoFecha.textContent = fechaFormateada;
+            }
+        }
+        actualizarFecha();
+        setInterval(actualizarFecha, 1000);
+        $(document).ready(function () {
+            const modalEditar = document.getElementById('modalEditarUsuario');
+
+            if (modalEditar) {
+                modalEditar.addEventListener('show.bs.modal', event => {
+                    const button = event.relatedTarget;
+
+                    const id = button.getAttribute('data-id');
+                    const org = button.getAttribute('data-org');
+                    const nombre = button.getAttribute('data-nombre');
+                    const correo = button.getAttribute('data-correo');
+                    const rol = button.getAttribute('data-rol');
+
+                    $('#formEditarUsuario').attr('action', `/usuarios/actualizar/${id}`);
+                    $('#edit_nombre_completo').val(nombre);
+                    $('#edit_correo').val(correo);
+                    $('#edit_rol').val(rol);
+                    $('#edit_id_organizacion').val(org);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

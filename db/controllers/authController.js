@@ -47,7 +47,6 @@ authController.login = async (req, res) => {
 
         const usuario = usuarios[0];
 
-        
         if (usuario.bloqueado_hasta && new Date(usuario.bloqueado_hasta) > new Date()) {
             req.session.error = 'Usuario temporalmente bloqueado. Intente más tarde.';
             return res.redirect('/auth/login');
@@ -81,10 +80,23 @@ authController.login = async (req, res) => {
         res.redirect('/auth/login');
     }
 };
-authController.registrarUsuario = async (req, res) => {
-    const { nombre_organizacion, rut_organizacion, nombre_completo, correo, contrasena, rol, telefono } = req.body;
 
-    if (!nombre_organizacion || !rut_organizacion || !nombre_completo || !correo || !contrasena || !rol) {
+authController.registrarUsuario = async (req, res) => {
+    
+    const { 
+        nombre_organizacion, 
+        rut_organizacion, 
+        correo_contacto, 
+        telefono_org, 
+        direccion, 
+        nombre_completo, 
+        correo, 
+        contrasena, 
+        rol, 
+        telefono 
+    } = req.body;
+
+    if (!nombre_organizacion || !rut_organizacion || !correo_contacto || !telefono_org || !direccion || !nombre_completo || !correo || !contrasena || !rol) {
         req.session.error = 'Todos los campos obligatorios deben ser completados.';
         return res.redirect('/auth/registro');
     }
@@ -92,10 +104,10 @@ authController.registrarUsuario = async (req, res) => {
     const connection = await db.getConnection(); 
     try {
         await connection.beginTransaction();
-
         const [orgResult] = await connection.query(
-            'INSERT INTO organizacion (nombre_organizacion, rut_organizacion, activo) VALUES (?, ?, 1)',
-            [nombre_organizacion, rut_organizacion]
+            `INSERT INTO organizacion (nombre_organizacion, rut_organizacion, correo_contacto, telefono, direccion, activo) 
+             VALUES (?, ?, ?, ?, ?, 1)`,
+            [nombre_organizacion, rut_organizacion, correo_contacto, telefono_org, direccion]
         );
         const id_organizacion = orgResult.insertId;
 

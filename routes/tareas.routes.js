@@ -1,12 +1,10 @@
-const express=require('express');
+const express = require('express');
+const router = express.Router();
+const tareasController = require('../db/controllers/tareasController');
 
-const router=express.Router();
-const tareasController=require('../db/controllers/tareasController');
 
-router.get('/',tareasController.listar);
-router.post('/guardar',tareasController.guardar);
-router.get('/:id',tareasController.obtenerPorId);
-router.put('/actualizar/:id',tareasController.actualizar);
-router.delete('/eliminar/:id',tareasController.eliminar);
+router.get('/', tareasController.listar);
+router.get('/crear', tareasController.mostrarCrear);
+router.post('/guardar', tareasController.guardar);
 
-module.exports=router;
+module.exports = router;

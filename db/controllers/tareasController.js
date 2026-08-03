@@ -1,297 +1,148 @@
-const db=require('../conexion');
+const db = require('../conexion');
 
-const tareasController={};
+const tareasController = {};
 
-tareasController.listar=async(req,res)=>{
+// 1. Listar tareas: renderiza tu vista Tarea.ejs pasando las tareas obtenidas de la BD
+tareasController.listar = async (req, res) => {
+    try {
+        const [tareas] = await db.query(`
+            SELECT 
+                tareas.*,
+                cat.nombre_categoria,
+                prio.nombre_prioridad,
+                prio.color_css AS color_prioridad,
+                est.nombre_estado,
+                est.color_css AS color_estado,
+                u_creador.nombre_completo AS creador,
+                u_asignado.nombre_completo AS responsable
+            FROM tarea tareas
+            LEFT JOIN categoria_tarea cat ON tareas.id_categoria = cat.id_categoria
+            INNER JOIN prioridad_tarea prio ON tareas.id_prioridad = prio.id_prioridad
+            INNER JOIN estado_tarea est ON tareas.id_estado = est.id_estado
+            INNER JOIN usuario u_creador ON tareas.id_usuario_creador = u_creador.id_usuario
+            INNER JOIN usuario u_asignado ON tareas.id_usuario_asignado = u_asignado.id_usuario
+            ORDER BY tareas.id_tarea DESC
+        `);
 
-try{
+        // También cargamos catálogos por si tu vista Tarea.ejs los necesita para los selects o modales
+        const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
+        const [prioridades] = await db.query('SELECT * FROM prioridad_tarea WHERE activo = 1');
+        const [estados] = await db.query('SELECT * FROM estado_tarea WHERE activo = 1');
+        const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
+        const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
 
-const[tareas]=await db.query(`
-SELECT 
-tareas.*,
-proyectos.nombre_proyecto,
-categorias_tarea.nombre_categoria,
-prioridades_tarea.nombre_prioridad,
-estados_tarea.nombre_estado,
-CONCAT(usuarios.nombre,' ',usuarios.apellido) AS responsable
-FROM tareas
-LEFT JOIN proyectos
-ON tareas.id_proyecto=proyectos.id_proyecto
-LEFT JOIN categorias_tarea
-ON tareas.id_categoria=categorias_tarea.id_categoria
-INNER JOIN prioridades_tarea
-ON tareas.id_prioridad=prioridades_tarea.id_prioridad
-INNER JOIN estados_tarea
-ON tareas.id_estado=estados_tarea.id_estado
-LEFT JOIN tarea_responsables
-ON tareas.id_tarea=tarea_responsables.id_tarea
-LEFT JOIN usuarios
-ON tarea_responsables.id_usuario=usuarios.id_usuario
-ORDER BY tareas.id_tarea DESC
-`);
+        return res.render('Tarea', {
+            title: 'Listado y Gestión de Tareas Operativas',
+            tareas,
+            categorias,
+            prioridades,
+            estados,
+            organizaciones,
+            usuarios,
+            error_msg: null,
+            usuario: req.session.usuario || null
+        });
 
-return res.status(200).json({
-ok:true,
-tareas
-});
-
-}catch(error){
-
-console.log(error);
-
-return res.status(500).json({
-ok:false,
-mensaje:'Error al listar tareas.'
-});
-
-}
-
+    } catch (error) {
+        console.error('Error al listar tareas:', error);
+        return res.status(500).render('Tarea', {
+            title: 'Listado de Tareas',
+            tareas: [],
+            categorias: [],
+            prioridades: [],
+            estados: [],
+            organizaciones: [],
+            usuarios: [],
+            error_msg: 'Error al listar las tareas desde la base de datos.',
+            usuario: req.session.usuario || null
+        });
+    }
 };
 
-tareasController.guardar=async(req,res)=>{
+// 2. Mostrar formulario específico de creación (si mantienes una ruta /crear separada)
+tareasController.mostrarCrear = async (req, res) => {
+    try {
+        const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
+        const [prioridades] = await db.query('SELECT * FROM prioridad_tarea WHERE activo = 1');
+        const [estados] = await db.query('SELECT * FROM estado_tarea WHERE activo = 1');
+        const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
+        const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
 
-try{
-
-const{
-id_proyecto,
-id_categoria,
-id_prioridad,
-id_estado,
-id_usuario,
-titulo,
-descripcion,
-ubicacion_referencial,
-fecha_inicio,
-fecha_limite
-}=req.body;
-
-if(!id_prioridad||!id_estado||!titulo){
-
-return res.status(400).json({
-ok:false,
-mensaje:'Campos obligatorios incompletos.'
-});
-
-}
-
-const[resultado]=await db.query(`
-INSERT INTO tareas(
-id_proyecto,
-id_categoria,
-id_prioridad,
-id_estado,
-id_usuario_creador,
-titulo,
-descripcion,
-ubicacion_referencial,
-fecha_inicio,
-fecha_limite
-)
-VALUES(?,?,?,?,?,?,?,?,?,?)
-`,[
-id_proyecto||null,
-id_categoria||null,
-id_prioridad,
-id_estado,
-req.session.usuario.id_usuario,
-titulo,
-descripcion||null,
-ubicacion_referencial||null,
-fecha_inicio||null,
-fecha_limite||null
-]);
-
-if(id_usuario){
-
-await db.query(`
-INSERT INTO tarea_responsables(
-id_tarea,
-id_usuario,
-tipo,
-asignado_por
-)
-VALUES(?,?,?,?)
-`,[
-resultado.insertId,
-id_usuario,
-'principal',
-req.session.usuario.id_usuario
-]);
-
-}
-
-return res.status(201).json({
-ok:true,
-mensaje:'Tarea creada correctamente.',
-id_tarea:resultado.insertId
-});
-
-}catch(error){
-
-console.log(error);
-
-return res.status(500).json({
-ok:false,
-mensaje:'Error al crear tarea.'
-});
-
-}
-
+        return res.render('Tarea', {
+            title: 'Registrar Nueva Tarea',
+            categorias,
+            prioridades,
+            estados,
+            organizaciones,
+            usuarios,
+            error_msg: null,
+            usuario: req.session.usuario || null
+        });
+    } catch (error) {
+        console.error('Error al cargar formularios:', error);
+        return res.redirect('/tareas');
+    }
 };
 
-tareasController.obtenerPorId=async(req,res)=>{
+// 3. Guardar nueva tarea en la BD tomando organización y administrador por defecto
+tareasController.guardar = async (req, res) => {
+    try {
+        const {
+            id_organizacion,
+            id_categoria,
+            id_prioridad,
+            id_estado,
+            id_usuario_asignado,
+            titulo,
+            descripcion,
+            ubicacion_referencial,
+            fecha_inicio,
+            fecha_limite,
+            porcentaje_avance,
+            observaciones
+        } = req.body;
 
-try{
+        if (!id_organizacion || !id_categoria || !id_prioridad || !id_estado || !id_usuario_asignado || !titulo || !fecha_inicio || !fecha_limite) {
+            return res.status(400).send('Faltan campos obligatorios para registrar la tarea.');
+        }
 
-const{id}=req.params;
+        let id_usuario_creador = req.session.usuario ? req.session.usuario.id_usuario : null;
+        
+        if (!id_usuario_creador) {
+            const [adminUser] = await db.query("SELECT id_usuario FROM usuario WHERE rol = 'administrador' LIMIT 1");
+            id_usuario_creador = adminUser.length > 0 ? adminUser[0].id_usuario : 1;
+        }
 
-const[tareas]=await db.query(`
-SELECT *
-FROM tareas
-WHERE id_tarea=?
-`,[id]);
+        await db.query(`
+            INSERT INTO tarea (
+                codigo_tarea, id_organizacion, id_categoria, id_prioridad, id_estado, 
+                id_usuario_creador, id_usuario_asignado, titulo, descripcion, 
+                ubicacion_referencial, fecha_inicio, fecha_limite, porcentaje_avance, 
+                observaciones, id_usuario_modificador
+            ) VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            id_organizacion,
+            id_categoria,
+            id_prioridad,
+            id_estado,
+            id_usuario_creador,
+            id_usuario_asignado,
+            titulo,
+            descripcion,
+            ubicacion_referencial,
+            fecha_inicio,
+            fecha_limite,
+            porcentaje_avance || 0.00,
+            observaciones || 'Sin observaciones',
+            id_usuario_creador
+        ]);
 
-if(tareas.length===0){
+        return res.redirect('/tareas');
 
-return res.status(404).json({
-ok:false,
-mensaje:'Tarea no encontrada.'
-});
-
-}
-
-return res.status(200).json({
-ok:true,
-tarea:tareas[0]
-});
-
-}catch(error){
-
-console.log(error);
-
-return res.status(500).json({
-ok:false,
-mensaje:'Error al obtener tarea.'
-});
-
-}
-
+    } catch (error) {
+        console.error('Error al guardar tarea:', error);
+        return res.status(500).send('Error interno al guardar la tarea.');
+    }
 };
 
-tareasController.actualizar=async(req,res)=>{
-
-try{
-
-const{id}=req.params;
-
-const{
-titulo,
-descripcion,
-id_estado,
-id_prioridad,
-fecha_limite,
-porcentaje_avance,
-observaciones
-}=req.body;
-
-const[tareaExiste]=await db.query(`
-SELECT id_tarea
-FROM tareas
-WHERE id_tarea=?
-`,[id]);
-
-if(tareaExiste.length===0){
-
-return res.status(404).json({
-ok:false,
-mensaje:'La tarea no existe.'
-});
-
-}
-
-await db.query(`
-UPDATE tareas
-SET
-titulo=?,
-descripcion=?,
-id_estado=?,
-id_prioridad=?,
-fecha_limite=?,
-porcentaje_avance=?,
-observaciones=?,
-fecha_actualizacion=NOW()
-WHERE id_tarea=?
-`,[
-titulo,
-descripcion,
-id_estado,
-id_prioridad,
-fecha_limite,
-porcentaje_avance||0,
-observaciones||null,
-id
-]);
-
-return res.status(200).json({
-ok:true,
-mensaje:'Tarea actualizada correctamente.'
-});
-
-}catch(error){
-
-console.log(error);
-
-return res.status(500).json({
-ok:false,
-mensaje:'Error al actualizar tarea.'
-});
-
-}
-
-};
-
-tareasController.eliminar=async(req,res)=>{
-
-try{
-
-const{id}=req.params;
-
-const[tareaExiste]=await db.query(`
-SELECT id_tarea
-FROM tareas
-WHERE id_tarea=?
-`,[id]);
-
-if(tareaExiste.length===0){
-
-return res.status(404).json({
-ok:false,
-mensaje:'La tarea no existe.'
-});
-
-}
-
-await db.query(`
-DELETE FROM tareas
-WHERE id_tarea=?
-`,[id]);
-
-return res.status(200).json({
-ok:true,
-mensaje:'Tarea eliminada correctamente.'
-});
-
-}catch(error){
-
-console.log(error);
-
-return res.status(500).json({
-ok:false,
-mensaje:'Error al eliminar tarea.'
-});
-
-}
-
-};
-
-module.exports=tareasController;
+module.exports = tareasController;
