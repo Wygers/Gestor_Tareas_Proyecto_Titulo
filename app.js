@@ -4,16 +4,19 @@ const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const db = require('./db/conexion');
+
 const authRoutes = require('./routes/auth.routes');
 const tareasRoutes = require('./routes/tareas.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const organizacionesRoutes = require('./routes/organizaciones.routes');
+const tareasController = require('./db/controllers/tareasController');
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(session({
     secret: 'gestor_tareas_secret_key',
     resave: false,
@@ -24,15 +27,20 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24
     }
 }));
+
 app.use((req, res, next) => {
     res.locals.usuario = req.session.usuario || null;
     next();
 });
 
+
 app.use('/auth', authRoutes);
 app.use('/tareas', tareasRoutes);
 app.use('/usuarios', usuariosRoutes); 
 app.use('/ListaOrganizaciones', organizacionesRoutes);
+
+
+app.get('/ListaTareas', tareasController.listar);
 
 app.get(['/', '/home'], (req, res) => {
     res.render('home', {

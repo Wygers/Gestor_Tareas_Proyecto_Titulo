@@ -1,8 +1,8 @@
 const db = require('../conexion');
-
 const tareasController = {};
 
-// 1. Listar tareas: renderiza tu vista Tarea.ejs pasando las tareas obtenidas de la BD
+
+
 tareasController.listar = async (req, res) => {
     try {
         const [tareas] = await db.query(`
@@ -24,14 +24,13 @@ tareasController.listar = async (req, res) => {
             ORDER BY tareas.id_tarea DESC
         `);
 
-        // También cargamos catálogos por si tu vista Tarea.ejs los necesita para los selects o modales
         const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
         const [prioridades] = await db.query('SELECT * FROM prioridad_tarea WHERE activo = 1');
         const [estados] = await db.query('SELECT * FROM estado_tarea WHERE activo = 1');
         const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
         const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
 
-        return res.render('Tarea', {
+        return res.render('ListaTareas', {
             title: 'Listado y Gestión de Tareas Operativas',
             tareas,
             categorias,
@@ -45,7 +44,7 @@ tareasController.listar = async (req, res) => {
 
     } catch (error) {
         console.error('Error al listar tareas:', error);
-        return res.status(500).render('Tarea', {
+        return res.status(500).render('ListaTareas', {
             title: 'Listado de Tareas',
             tareas: [],
             categorias: [],
@@ -59,7 +58,7 @@ tareasController.listar = async (req, res) => {
     }
 };
 
-// 2. Mostrar formulario específico de creación (si mantienes una ruta /crear separada)
+
 tareasController.mostrarCrear = async (req, res) => {
     try {
         const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
@@ -80,11 +79,11 @@ tareasController.mostrarCrear = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al cargar formularios:', error);
-        return res.redirect('/tareas');
+        return res.redirect('/ListaTareas');
     }
 };
 
-// 3. Guardar nueva tarea en la BD tomando organización y administrador por defecto
+
 tareasController.guardar = async (req, res) => {
     try {
         const {
@@ -137,7 +136,7 @@ tareasController.guardar = async (req, res) => {
             id_usuario_creador
         ]);
 
-        return res.redirect('/tareas');
+        return res.redirect('/ListaTareas');
 
     } catch (error) {
         console.error('Error al guardar tarea:', error);
