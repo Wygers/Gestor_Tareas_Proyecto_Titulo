@@ -11,18 +11,43 @@
             margin: 0;
         }
         body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 100%); 
             min-height: 100vh; 
             display: flex; 
             flex-direction: column; 
             font-family: 'Inter', sans-serif;
         }
+        .navbar-custom {
+            background-color: #0f172a !important;
+            border-bottom: 3px solid #3b82f6;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
         .login-card { 
             border-radius: 20px; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-            border: none; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             padding: 40px; 
-            background: white; 
+            background: #fcfbfa;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        .btn-outline-custom {
+            color: #2563eb;
+            border: 1.5px solid #e2e8f0;
+            background-color: #ffffff;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-outline-custom:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #1d4ed8;
+            transform: translateY(-1px);
         }
         .footer { 
             background-color: #0f172a !important; 
@@ -31,9 +56,16 @@
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-5" href="/">
+                <i class="bi bi-kanban-fill me-2 text-primary"></i> Gestor de Tareas
+            </a>
+        </div>
+    </nav>
     <main class="container my-5 d-flex justify-content-center align-items-center flex-grow-1">
         <div class="card login-card col-12 col-md-4">
-            <h3 class="text-center mb-4"><i class="bi bi-box-arrow-in-right text-primary"></i> Iniciar Sesión</h3>
+            <h3 class="text-center mb-4 text-dark fw-bold"><i class="bi bi-box-arrow-in-right text-primary"></i> INICIAR SESIÓN</h3>  
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="bi bi-exclamation-triangle"></i> <%= error %>
@@ -48,23 +80,23 @@
             <% } %>
             <form action="/auth/login" method="POST">
                 <div class="mb-3">
-                    <label class="form-label"><i class="bi bi-envelope"></i> Correo Electrónico</label>
-                    <input type="email" name="correo" class="form-control" placeholder="usuario@empresa.com" required>
+                    <label class="form-label fw-semibold text-secondary"><i class="bi bi-envelope"></i> Correo Electrónico</label>
+                    <input type="email" name="correo" class="form-control bg-white" placeholder="usuario@empresa.com" required>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-lock"></i> Contraseña</label>
-                    <input type="password" name="contrasena" class="form-control" placeholder="Ingrese su contraseña" required>
+                    <label class="form-label fw-semibold text-secondary"><i class="bi bi-lock"></i> Contraseña</label>
+                    <input type="password" name="contrasena" class="form-control bg-white" placeholder="Ingrese su contraseña" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
                     <i class="bi bi-box-arrow-in-right"></i> Ingresar
                 </button>
             </form>
-            <hr class="my-4">
-            <p class="text-center mb-0">
-                <a href="/auth/registro" class="text-decoration-none">
-                    <i class="bi bi-person-plus"></i> ¿No tienes cuenta? Regístrate aquí
+            <hr class="my-4 text-muted">
+            <div class="text-center">
+                <a href="/auth/registro" class="btn btn-outline-custom w-100 py-2 rounded-pill text-decoration-none fw-semibold shadow-sm">
+                    <i class="bi bi-person-plus me-1"></i> ¿NO TIENES UNA CUENTA? REGÍSTRATE
                 </a>
-            </p>
+            </div>
         </div>
     </main>
     <footer class="footer mt-auto py-4 text-white text-center border-top border-dark">

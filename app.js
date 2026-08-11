@@ -32,8 +32,6 @@ app.use((req, res, next) => {
     res.locals.usuario = req.session.usuario || null;
     next();
 });
-
-
 app.use('/auth', authRoutes);
 app.use('/tareas', tareasRoutes);
 app.use('/usuarios', usuariosRoutes); 

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+        .navbar-custom {
+            background-color: #0f172a !important;
+            border-bottom: 3px solid #3b82f6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .main-container {
+            background: #fcfbfa;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .table-custom th {
+            background-color: #0f172a;
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+        .footer {
+            background-color: #0f172a !important;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-5" href="/">
+                <i class="bi bi-kanban-fill me-2 text-primary"></i> Gestor de Tareas
+            </a>
+            <div class="ms-auto d-flex gap-2">
+                <a href="/tareas/crear" class="btn btn-primary btn-sm px-3 fw-semibold">
+                    <i class="bi bi-plus-lg me-1"></i> Nueva Tarea
+                </a>
+                <a href="/" class="btn btn-outline-light btn-sm px-3 fw-medium">
+                    <i class="bi bi-house me-1"></i> Inicio
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main class="container flex-grow-1">
+        <div class="main-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-dark m-0"><i class="bi bi-list-task text-primary me-2"></i> Listado de Tareas
+                    Operativas</h2>
+                <span class="badge bg-secondary fs-6">Total: <%= tareas.length %></span>
+            </div>
+            <% if (error_msg) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <%= error_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                    <% if (tareas.length===0) { %>
+                        <div class="text-center py-5">
+                            <i class="bi bi-folder2-open display-4 text-muted"></i>
+                            <p class="text-muted mt-3 fw-medium">No hay tareas registradas en el sistema actualmente.
+                            </p>
+                            <a href="/tareas/crear" class="btn btn-primary mt-2">Registrar la primera tarea</a>
+                        </div>
+                        <% } else { %>
+                            <div class="table-responsive">
+                                <table
+                                    class="table table-hover align-middle table-custom overflow-hidden rounded-3 shadow-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-3">Título / Descripción</th>
+                                            <th>Categoría</th>
+                                            <th>Prioridad</th>
+                                            <th>Estado</th>
+                                            <th>Responsable</th>
+                                            <th>Fechas</th>
+                                            <th>Avance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% tareas.forEach(tarea=> { %>
+                                            <tr>
+                                                <td class="ps-3">
+                                                    <div class="fw-bold text-dark">
+                                                        <%= tarea.titulo %>
+                                                    </div>
+                                                    <small class="text-muted text-truncate d-inline-block"
+                                                        style="max-width: 250px;">
+                                                        <%= tarea.descripcion %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <%= tarea.nombre_categoria || 'Sin categoría' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+
+                                                    <span class="badge px-2 py-1"
+                                                        style="background-color: <%= tarea.color_prioridad || '#6c757d' %>; color: #fff;">
+                                                        <%= tarea.nombre_prioridad %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge px-2 py-1"
+                                                        style="background-color: <%= tarea.color_estado || '#6c757d' %>; color: #fff;">
+                                                        <%= tarea.nombre_estado %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-medium text-secondary small"><i
+                                                            class="bi bi-person me-1"></i>
+                                                        <%= tarea.responsable %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="small text-muted"><strong>Inicio:</strong>
+                                                        <%= new Date(tarea.fecha_inicio).toLocaleDateString() %>
+                                                    </div>
+                                                    <div class="small text-muted"><strong>Límite:</strong>
+                                                        <%= new Date(tarea.fecha_limite).toLocaleDateString() %>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="progress flex-grow-1 me-2"
+                                                            style="height: 8px; width: 60px;">
+                                                            <div class="progress-bar bg-success" role="progressbar"
+                                                                style="width: <%= tarea.porcentaje_avance %>%"></div>
+                                                        </div>
+                                                        <span class="small fw-bold">
+                                                            <%= tarea.porcentaje_avance %>%
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+        </div>
+    </main>
+    <footer class="footer mt-auto py-4 text-white text-center border-top border-dark">
+        <div class="container">
+            <p class="mb-1 fw-medium">&copy; 2026 Sistema de Gestión de Tareas Operativas</p>
+            <p class="mb-2">
+                <i class="bi bi-calendar-check me-1 text-info"></i> Fecha del sistema: <span id="fechaActual"
+                    class="fw-bold"></span>
+            </p>
+            <p class="small text-white-50 mb-0">Control • Seguridad • Reportes</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function actualizarFecha() {
+            const fecha = new Date();
+            const opciones = {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            };
+            const fechaFormateada = fecha.toLocaleString('es-CL', opciones);
+            const elementoFecha = document.getElementById("fechaActual");
+            if (elementoFecha) {
+                elementoFecha.textContent = fechaFormateada;
+            }
+        }
+        actualizarFecha();
+        setInterval(actualizarFecha, 1000);
+    </script>
+</body>
+</html>
