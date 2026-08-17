@@ -2,7 +2,6 @@ const db = require('../conexion');
 const tareasController = {};
 
 
-
 tareasController.listar = async (req, res) => {
     try {
         const [tareas] = await db.query(`
@@ -30,6 +29,18 @@ tareasController.listar = async (req, res) => {
         const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
         const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
 
+        // Soporte RESTful: Si la petición espera JSON (ej. para Dashboard en tiempo real), responde con datos. Si no, renderiza la vista.
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.json({
+                success: true,
+                tareas,
+                categorias,
+                prioridades,
+                estados,
+                organizaciones,
+                usuarios
+            });
+        }
         return res.render('ListaTareas', {
             title: 'Listado y Gestión de Tareas Operativas',
             tareas,
@@ -44,6 +55,11 @@ tareasController.listar = async (req, res) => {
 
     } catch (error) {
         console.error('Error al listar tareas:', error);
+        
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.status(500).json({ success: false, error: 'Error al listar las tareas desde la base de datos.' });
+        }
+
         return res.status(500).render('ListaTareas', {
             title: 'Listado de Tareas',
             tareas: [],
@@ -58,7 +74,7 @@ tareasController.listar = async (req, res) => {
     }
 };
 
-
+// GET /api/tareas/crear - Obtener recursos para el formulario de creación
 tareasController.mostrarCrear = async (req, res) => {
     try {
         const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
@@ -66,6 +82,10 @@ tareasController.mostrarCrear = async (req, res) => {
         const [estados] = await db.query('SELECT * FROM estado_tarea WHERE activo = 1');
         const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
         const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
+
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.json({ success: true, categorias, prioridades, estados, organizaciones, usuarios });
+        }
 
         return res.render('Tarea', {
             title: 'Registrar Nueva Tarea',
@@ -79,11 +99,14 @@ tareasController.mostrarCrear = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al cargar formularios:', error);
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.status(500).json({ success: false, error: 'Error al cargar formularios' });
+        }
         return res.redirect('/ListaTareas');
     }
 };
 
-
+// POST /api/tareas - Crear una nueva tarea
 tareasController.guardar = async (req, res) => {
     try {
         const {
@@ -102,6 +125,9 @@ tareasController.guardar = async (req, res) => {
         } = req.body;
 
         if (!id_organizacion || !id_categoria || !id_prioridad || !id_estado || !id_usuario_asignado || !titulo || !fecha_inicio || !fecha_limite) {
+            if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+                return res.status(400).json({ success: false, error: 'Faltan campos obligatorios para registrar la tarea.' });
+            }
             return res.status(400).send('Faltan campos obligatorios para registrar la tarea.');
         }
 
@@ -112,7 +138,7 @@ tareasController.guardar = async (req, res) => {
             id_usuario_creador = adminUser.length > 0 ? adminUser[0].id_usuario : 1;
         }
 
-        await db.query(`
+        const [resultado] = await db.query(`
             INSERT INTO tarea (
                 codigo_tarea, id_organizacion, id_categoria, id_prioridad, id_estado, 
                 id_usuario_creador, id_usuario_asignado, titulo, descripcion, 
@@ -135,13 +161,22 @@ tareasController.guardar = async (req, res) => {
             observaciones || 'Sin observaciones',
             id_usuario_creador
         ]);
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.status(201).json({
+                success: true,
+                message: 'Tarea creada exitosamente',
+                id_tarea: resultado.insertId
+            });
+        }
 
         return res.redirect('/ListaTareas');
 
     } catch (error) {
         console.error('Error al guardar tarea:', error);
+        if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+            return res.status(500).json({ success: false, error: 'Error interno al guardar la tarea.' });
+        }
         return res.status(500).send('Error interno al guardar la tarea.');
     }
 };
-
 module.exports = tareasController;
