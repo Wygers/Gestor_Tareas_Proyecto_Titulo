@@ -115,6 +115,16 @@ CREATE TABLE evidencia_tarea (
     FOREIGN KEY (id_tarea) REFERENCES tarea(id_tarea),
     FOREIGN KEY (id_usuario_subida) REFERENCES usuario(id_usuario)
 );
+CREATE TABLE tarea_dependencia (
+    id_dependencia INT AUTO_INCREMENT PRIMARY KEY,
+    id_tarea_predecesora INT NOT NULL,
+    id_tarea_sucesora INT NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_tarea_predecesora) REFERENCES tarea(id_tarea) ON DELETE CASCADE,
+    FOREIGN KEY (id_tarea_sucesora) REFERENCES tarea(id_tarea) ON DELETE CASCADE,
+    UNIQUE KEY uk_dependencia_tareas (id_tarea_predecesora, id_tarea_sucesora)
+);
 CREATE TABLE comentario_tarea (
     id_comentario INT AUTO_INCREMENT PRIMARY KEY,
     id_tarea INT NOT NULL,

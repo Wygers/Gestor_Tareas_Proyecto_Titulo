@@ -1,6 +1,8 @@
 const db = require('../conexion');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 const tareasController = {};
-
+tareasController.uploadMiddleware = upload.single('archivo_evidencia');
 
 tareasController.listar = async (req, res) => {
     try {
@@ -29,52 +31,33 @@ tareasController.listar = async (req, res) => {
         const [organizaciones] = await db.query('SELECT * FROM organizacion WHERE activo = 1');
         const [usuarios] = await db.query('SELECT id_usuario, id_organizacion, nombre_completo, rol FROM usuario WHERE activo = 1');
 
-        // Soporte RESTful: Si la petición espera JSON (ej. para Dashboard en tiempo real), responde con datos. Si no, renderiza la vista.
         if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             return res.json({
                 success: true,
-                tareas,
-                categorias,
-                prioridades,
-                estados,
-                organizaciones,
-                usuarios
+                tareas, categorias, prioridades, estados, organizaciones, usuarios
             });
         }
         return res.render('ListaTareas', {
             title: 'Listado y Gestión de Tareas Operativas',
-            tareas,
-            categorias,
-            prioridades,
-            estados,
-            organizaciones,
-            usuarios,
+            tareas, categorias, prioridades, estados, organizaciones, usuarios,
             error_msg: null,
             usuario: req.session.usuario || null
         });
 
     } catch (error) {
         console.error('Error al listar tareas:', error);
-        
         if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             return res.status(500).json({ success: false, error: 'Error al listar las tareas desde la base de datos.' });
         }
-
         return res.status(500).render('ListaTareas', {
             title: 'Listado de Tareas',
-            tareas: [],
-            categorias: [],
-            prioridades: [],
-            estados: [],
-            organizaciones: [],
-            usuarios: [],
+            tareas: [], categorias: [], prioridades: [], estados: [], organizaciones: [], usuarios: [],
             error_msg: 'Error al listar las tareas desde la base de datos.',
             usuario: req.session.usuario || null
         });
     }
 };
 
-// GET /api/tareas/crear - Obtener recursos para el formulario de creación
 tareasController.mostrarCrear = async (req, res) => {
     try {
         const [categorias] = await db.query('SELECT * FROM categoria_tarea WHERE activo = 1');
@@ -89,11 +72,7 @@ tareasController.mostrarCrear = async (req, res) => {
 
         return res.render('Tarea', {
             title: 'Registrar Nueva Tarea',
-            categorias,
-            prioridades,
-            estados,
-            organizaciones,
-            usuarios,
+            categorias, prioridades, estados, organizaciones, usuarios,
             error_msg: null,
             usuario: req.session.usuario || null
         });
@@ -102,27 +81,20 @@ tareasController.mostrarCrear = async (req, res) => {
         if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             return res.status(500).json({ success: false, error: 'Error al cargar formularios' });
         }
-        return res.redirect('/ListaTareas');
+        return res.redirect('/tareas');
     }
 };
 
-// POST /api/tareas - Crear una nueva tarea
 tareasController.guardar = async (req, res) => {
     try {
         const {
-            id_organizacion,
-            id_categoria,
-            id_prioridad,
-            id_estado,
-            id_usuario_asignado,
-            titulo,
-            descripcion,
-            ubicacion_referencial,
-            fecha_inicio,
-            fecha_limite,
-            porcentaje_avance,
-            observaciones
+            id_organizacion, id_categoria, id_prioridad, id_estado,
+            id_usuario_asignado, titulo, descripcion, ubicacion_referencial,
+            fecha_inicio, fecha_limite, porcentaje_avance, observaciones,
+            descripcion_evidencia
         } = req.body;
+
+        const archivo = req.file; // Archivo procesado temporalmente en memoria RAM
 
         if (!id_organizacion || !id_categoria || !id_prioridad || !id_estado || !id_usuario_asignado || !titulo || !fecha_inicio || !fecha_limite) {
             if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
@@ -138,6 +110,7 @@ tareasController.guardar = async (req, res) => {
             id_usuario_creador = adminUser.length > 0 ? adminUser[0].id_usuario : 1;
         }
 
+        // 1. Insertar la tarea (el Trigger SQL genera automáticamente el código_tarea)
         const [resultado] = await db.query(`
             INSERT INTO tarea (
                 codigo_tarea, id_organizacion, id_categoria, id_prioridad, id_estado, 
@@ -146,37 +119,49 @@ tareasController.guardar = async (req, res) => {
                 observaciones, id_usuario_modificador
             ) VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
-            id_organizacion,
-            id_categoria,
-            id_prioridad,
-            id_estado,
-            id_usuario_creador,
-            id_usuario_asignado,
-            titulo,
-            descripcion,
-            ubicacion_referencial,
-            fecha_inicio,
-            fecha_limite,
-            porcentaje_avance || 0.00,
-            observaciones || 'Sin observaciones',
+            id_organizacion, id_categoria, id_prioridad, id_estado,
+            id_usuario_creador, id_usuario_asignado, titulo, descripcion,
+            ubicacion_referencial, fecha_inicio, fecha_limite,
+            porcentaje_avance || 0.00, observaciones || 'Sin observaciones',
             id_usuario_creador
         ]);
+
+        const id_nueva_tarea = resultado.insertId;
+
+        // 2. Si se adjuntó un archivo, registrar su metadato en la tabla 'evidencia_tarea' sin requerir ruta de disco
+        if (archivo) {
+            await db.query(`
+                INSERT INTO evidencia_tarea (
+                    id_tarea, id_usuario_subida, nombre_archivo, ruta_archivo, tipo_archivo, tamano_bytes, descripcion
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [
+                id_nueva_tarea,
+                id_usuario_creador,
+                archivo.originalname,
+                'Procesado en Memoria (Sin ruta de disco)', // Evita usar archivo.path
+                archivo.mimetype,
+                archivo.size,
+                descripcion_evidencia || 'Evidencia inicial adjunta'
+            ]);
+        }
+
         if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             return res.status(201).json({
                 success: true,
-                message: 'Tarea creada exitosamente',
-                id_tarea: resultado.insertId
+                message: 'Tarea y evidencia creadas exitosamente',
+                id_tarea: id_nueva_tarea
             });
         }
 
-        return res.redirect('/ListaTareas');
+        return res.redirect('/tareas');
 
     } catch (error) {
-        console.error('Error al guardar tarea:', error);
+        console.error('Error al guardar tarea y evidencia:', error);
         if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
             return res.status(500).json({ success: false, error: 'Error interno al guardar la tarea.' });
         }
         return res.status(500).send('Error interno al guardar la tarea.');
     }
 };
+
 module.exports = tareasController;

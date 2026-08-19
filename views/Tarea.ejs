@@ -16,62 +16,20 @@
             --primary-dark: #172554;
             --gradient: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
         }
-
         html, body {
-            height: 100%;
-            margin: 0;
-            background-color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            color: #334155;
+            height: 100%; margin: 0; background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155;
         }
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .content-wrapper {
-            flex: 1 0 auto;
-        }
-        .navbar-custom { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-            border-bottom: 3px solid #3b82f6;
-        }
-        .card-header-custom {
-            background: var(--gradient) !important;
-            color: #ffffff !important;
-            border-bottom: none;
-        }
-        .form-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--primary);
-        }
-        .section-title {
-            color: var(--primary);
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .btn-primary-custom {
-            background-color: var(--primary);
-            border: none;
-            color: white;
-        }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .content-wrapper { flex: 1 0 auto; }
+        .navbar-custom { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-bottom: 3px solid #3b82f6; }
+        .card-header-custom { background: var(--gradient) !important; color: #ffffff !important; border-bottom: none; }
+        .form-section { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 25px; border-left: 4px solid var(--primary); }
+        .section-title { color: var(--primary); font-size: 1.1rem; margin-bottom: 15px; font-weight: 600; }
+        .btn-primary-custom { background-color: var(--primary); border: none; color: white; }
         .btn-primary-custom:hover { background-color: var(--primary-dark); color: white; }
-        .required-field::after {
-            content: " *";
-            color: #dc3545;
-        }
-        .bg-primary-custom { 
-            background-color: #0f172a !important; 
-        }
-        footer {
-            flex-shrink: 0;
-            width: 100%;
-        }
+        .required-field::after { content: " *"; color: #dc3545; }
+        .bg-primary-custom { background-color: #0f172a !important; }
+        footer { flex-shrink: 0; width: 100%; }
     </style>
 </head>
 <body>
@@ -104,11 +62,11 @@
                             <h3 class="mb-0 text-white"><i class="bi bi-plus-square-fill me-2"></i> Registrar Nueva Tarea</h3>
                         </div>
                         <div class="card-body p-4">
-                            <form action="/tareas/guardar" method="POST" id="formCrearTarea">
+                            <!-- CORREGIDO: Se agregó enctype para archivos y la ruta apunta a /tareas -->
+                            <form action="/tareas" method="POST" id="formCrearTarea" enctype="multipart/form-data">
                                 <div class="form-section">
                                     <h5 class="section-title"><i class="bi bi-info-circle me-2"></i>1. Información General de la Tarea</h5>
                                     <div class="row">
-                                        <!-- CAMPO AGREGADO: Organización requerida por la BD y el Controlador -->
                                         <div class="col-md-12 mb-3">
                                             <label for="id_organizacion" class="form-label fw-bold required-field">Organización</label>
                                             <select class="form-select shadow-sm" id="id_organizacion" name="id_organizacion" required>
@@ -120,7 +78,6 @@
                                                 <% } %>
                                             </select>
                                         </div>
-
                                         <div class="col-md-12 mb-3">
                                             <label for="titulo" class="form-label fw-bold required-field">Título de la Tarea</label>
                                             <input type="text" class="form-control shadow-sm" id="titulo" name="titulo" placeholder="Tarea Operativa" required>
@@ -131,7 +88,7 @@
                                         </div>
                                         <div class="col-md-12 mb-3">
                                             <label for="ubicacion_referencial" class="form-label fw-bold required-field">Ubicación Exacta / Referencial</label>
-                                            <input type="text" class="form-control shadow-sm" id="ubicacion_referencial" name="ubicacion_referencial" placeholder="Ej: Edificio Torre B, Piso 4, Sala de Servidores - Coordenadas o Sector exacto" required>
+                                            <input type="text" class="form-control shadow-sm" id="ubicacion_referencial" name="ubicacion_referencial" placeholder="Ej: Edificio Torre B, Piso 4..." required>
                                         </div>
                                     </div>
                                 </div>
@@ -201,7 +158,7 @@
                                         </div>
                                         <div class="col-md-12 mb-3">
                                             <label for="observaciones" class="form-label fw-bold required-field">Observaciones Iniciales</label>
-                                            <textarea class="form-control shadow-sm" id="observaciones" name="observaciones" rows="2" placeholder="Observaciones..." required>Ninguna</textarea>
+                                            <textarea class="form-control shadow-sm" id="observaciones" name="observaciones" rows="2" required>Ninguna</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -214,17 +171,13 @@
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="descripcion_evidencia" class="form-label fw-bold">Descripción de la Evidencia</label>
-                                            <input type="text" class="form-control shadow-sm" id="descripcion_evidencia" name="descripcion_evidencia" placeholder="Ej: Estado inicial del equipo antes de reparar">
+                                            <input type="text" class="form-control shadow-sm" id="descripcion_evidencia" name="descripcion_evidencia" placeholder="Ej: Estado inicial del equipo">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">
-                                    <a href="/tareas" class="btn btn-secondary px-4 shadow-sm">
-                                        <i class="bi bi-arrow-left me-2"></i> CANCELAR
-                                    </a>
-                                    <button type="submit" class="btn btn-primary-custom px-5 shadow-sm fw-bold">
-                                        <i class="bi bi-save me-2"></i> GUARDAR TAREA
-                                    </button>
+                                    <a href="/tareas" class="btn btn-secondary px-4 shadow-sm"><i class="bi bi-arrow-left me-2"></i> CANCELAR</a>
+                                    <button type="submit" class="btn btn-primary-custom px-5 shadow-sm fw-bold"><i class="bi bi-save me-2"></i> GUARDAR TAREA</button>
                                 </div>
                             </form>
                         </div>
@@ -236,26 +189,16 @@
     <footer class="footer mt-auto py-4 bg-primary-custom text-white text-center border-top border-dark">
         <div class="container">
             <p class="mb-1 fw-medium">&copy; 2026 Sistema de Gestión de Tareas Operativas</p>
-            <p class="mb-2">
-                <i class="bi bi-calendar-check me-1 text-info"></i> Fecha del sistema: <span id="fechaActual" class="fw-bold"></span>
-            </p>
-            <p class="small text-white-50 mb-0">Control • Seguridad • Reportes</p>
+            <p class="mb-2"><i class="bi bi-calendar-check me-1 text-info"></i> Fecha del sistema: <span id="fechaActual" class="fw-bold"></span></p>
         </div>
     </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function actualizarFecha() {
             const fecha = new Date();
-            const opciones = {
-                year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            };
-            const fechaFormateada = fecha.toLocaleString('es-CL', opciones);
+            const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
             const elementoFecha = document.getElementById("fechaActual");
-            if (elementoFecha) {
-                elementoFecha.textContent = fechaFormateada;
-            }
+            if (elementoFecha) { elementoFecha.textContent = fecha.toLocaleString('es-CL', opciones); }
         }
         actualizarFecha();
         setInterval(actualizarFecha, 1000);
@@ -263,7 +206,6 @@
         document.getElementById('formCrearTarea').addEventListener('submit', function(e) {
             const inicio = new Date(document.getElementById('fecha_inicio').value);
             const limite = new Date(document.getElementById('fecha_limite').value);
-
             if (limite < inicio) {
                 e.preventDefault();
                 alert('La fecha límite no puede ser anterior a la fecha de inicio.');
