@@ -53,7 +53,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <% } %>
-            <!-- VALIDACIÓN DE ROL: Solo el usuario Técnico puede modificar la tarea -->
             <% if (locals.usuario && usuario.rol === 'tecnico') { %>
                 <div class="row justify-content-center">
                     <div class="col-lg-10">
@@ -64,7 +63,6 @@
                             </div>
                             <div class="card-body p-4">
                                 <form action="/tareas/actualizar/<%= tarea.id_tarea %>" method="POST" id="formEditarTarea">
-                                    <!-- 1. Información General -->
                                     <div class="form-section">
                                         <h5 class="section-title"><i class="bi bi-info-circle me-2"></i>1. Información General</h5>
                                         <div class="row">
@@ -82,7 +80,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- 2. Estado y Avance Técnico -->
                                     <div class="form-section">
                                         <h5 class="section-title"><i class="bi bi-sliders me-2"></i>2. Estado y Progreso de Ejecución</h5>
                                         <div class="row">
@@ -104,7 +101,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- 3. Plazos y Observaciones -->
                                     <div class="form-section">
                                         <h5 class="section-title"><i class="bi bi-calendar-event me-2"></i>3. Plazos y Observaciones de Terreno</h5>
                                         <div class="row">
